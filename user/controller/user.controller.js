@@ -1,6 +1,7 @@
 const userModel = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const blacklistTokenModel = require("../models/blaclisttoken.model");
 
 //USER REGISTER CONTROLLER
 module.exports.register = async (req, res) => {
@@ -30,9 +31,84 @@ module.exports.register = async (req, res) => {
 
     res.cookie("token", token);
 
-    res
-      .status(200)
-      .json({ success: true, message: "User register succesfully" });
+    //After creating entry send in the response
+    res.status(200).json({
+      success: true,
+      message: "User register succesfully",
+      user: newUser,
+      token: token,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//USER LOGIN CONTROLLER
+module.exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    //Find user in DB, and take the password using 'select' method
+    const user = await userModel.findOne({ email }).select("+password");
+
+    //User not found return error message
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid user name or password" });
+    }
+
+    //Match the body password with DB saved password
+    //Decrypt the password and match
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    //If password not matched , return invalid message
+    if (!isMatch) {
+      return res.status(400).json({
+        sucees: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    //If user found make token to send in the response
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.cooke("token", token);
+
+    //After Login send in the response
+    res.status(200).json({
+      success: true,
+      message: "Login Succesfully",
+      user,
+      token,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//USER LOGOUT CONTROLLER
+module.exports.logout = async (req, res) => {
+  try {
+    //getting token value from header cookie
+    const token = req.cookies.token;
+
+    //Creating the token in blacklist table entry
+    await blacklistTokenModel.create({ token });
+
+    res.clearCookie("token");
+    res.send({ success: true, message: "User logout succesfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//USER PROFILE CONTROLLER
+module.exports.profile = async (req, res) => {
+  try {
+    res.send(req.user);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
