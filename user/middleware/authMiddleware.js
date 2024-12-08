@@ -17,9 +17,10 @@ module.exports.userAuth = async (req, res, next) => {
     //Check the token entry is  not present in blacklist table
     const isBlacklisted = await blacklistTokenModel.find({ token });
 
+    // console.log("isblacklist:", isBlacklisted);
     //If token is found in blacklist table ,
     //then user try to hit the api with the same token , which were logout
-    if (isBlacklisted.lenght) {
+    if (isBlacklisted.length) {
       return res.status(401).json({ success: false, message: "Unauhtorized" });
     }
 

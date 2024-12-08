@@ -7,6 +7,7 @@ const blacklistTokenModel = require("../models/blaclisttoken.model");
 module.exports.register = async (req, res) => {
   try {
     //Extracting the name , email , password from body
+    // console.log("request body:", req.body);
     const { name, email, password } = req.body;
     const user = await userModel.findOne({ email });
 
@@ -30,6 +31,9 @@ module.exports.register = async (req, res) => {
     });
 
     res.cookie("token", token);
+
+    //it delete the passoword key from user , while send in response
+    delete newUser._doc.password;
 
     //After creating entry send in the response
     res.status(200).json({
@@ -75,7 +79,10 @@ module.exports.login = async (req, res) => {
       expiresIn: "1h",
     });
 
-    res.cooke("token", token);
+    //it delete the passoword key from user , while send in response
+    delete user._doc.password;
+
+    res.cookie("token", token);
 
     //After Login send in the response
     res.status(200).json({
@@ -108,6 +115,8 @@ module.exports.logout = async (req, res) => {
 //USER PROFILE CONTROLLER
 module.exports.profile = async (req, res) => {
   try {
+    //Deleting password before sending in response
+    delete req.user._doc.password;
     res.send(req.user);
   } catch (error) {
     res.status(500).json({ message: error.message });
