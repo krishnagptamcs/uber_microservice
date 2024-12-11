@@ -4,7 +4,10 @@ const express = require("express");
 const app = express();
 const captainRoutes = require("./routes/captain.routes");
 const cookieParser = require("cookie-parser");
+const connectRabbitMq = require("./service/rabbit");
 const connectDb = require("./db/db");
+
+connectRabbitMq.connect();
 
 //Function which connect to DB
 connectDb();

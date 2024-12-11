@@ -2,6 +2,7 @@ const captainModel = require("../models/captain.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const blacklistTokenModel = require("../models/blaclisttoken.model");
+const { publishToQueue, subscribeToQueue } = require("../service/rabbit");
 
 //CAPTAIN REGISTER CONTROLLER
 module.exports.register = async (req, res) => {
@@ -153,3 +154,10 @@ module.exports.toggleAvailbilty = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+//Subscribing to the queue
+subscribeToQueue("new-ride", (data) => {
+  const rideData = JSON.parse(data);
+
+  console.log("new ride info in captian is:", rideData);
+});

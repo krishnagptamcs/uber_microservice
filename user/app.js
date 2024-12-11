@@ -4,7 +4,11 @@ const express = require("express");
 const app = express();
 const userRoutes = require("./routes/user.routes");
 const cookieParser = require("cookie-parser");
+const connectRabbitMq = require("./service/rabbit");
 const connectDb = require("./db/db");
+
+//Function which connect to Rabbit mq server
+connectRabbitMq.connect();
 
 //Function which connect to DB
 connectDb();
